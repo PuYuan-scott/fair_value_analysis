@@ -1,233 +1,244 @@
-# KO DCF：完整数据、假设与计算说明
+# Coca-Cola (KO) Post-CCBA DCF Valuation
 
-完整、可直接作为报告正文使用的英文版本见 [`KO_DCF_Article_EN.md`](KO_DCF_Article_EN.md)。本文件保留为模型使用说明和快速计算摘要。
+A fully reproducible free-cash-flow-to-the-firm valuation of The Coca-Cola Company, including:
 
-## 结论
+- a reconstructed post-CCBA operating baseline;
+- a five-year explicit FCFF forecast;
+- Bear, Base, and Bull operating scenarios;
+- WACC and terminal-growth sensitivity analysis;
+- an enterprise-to-equity value bridge;
+- a probability-weighted IRS litigation adjustment; and
+- machine-readable assumptions, sources, outputs, and validation checks.
 
-估值日为 2026-08-19。Base Case 的模型结果为：
+The full investment report is available in [`KO_DCF_Article_EN.md`](KO_DCF_Article_EN.md). This README is the technical guide to the repository and the model.
 
-- Core fair value：约 **$74.22/股**；
-- IRS 风险调整：约 **-$1.98/股**；
-- Risk-adjusted fair value：约 **$72.24/股**；
-- 2026 comparable EPS 中点：**$3.285/股**；
-- 对应合理 forward P/E：core **22.59x**，risk-adjusted **21.99x**。
+## Headline Results
 
-这不是精确价格预测。终值约占 EV 的 83%，所以 WACC、永续增长率和 terminal ROIC 是最重要的估值变量。
+The valuation date is August 19, 2026. Base Case results are:
 
-## 文件结构
+| Metric | Result |
+|---|---:|
+| Core fair value | **$74.22 per share** |
+| Expected IRS adjustment | **-$1.98 per share** |
+| Risk-adjusted fair value | **$72.24 per share** |
+| 2026 comparable EPS midpoint | **$3.285 per share** |
+| Core justified forward P/E | **22.59×** |
+| Risk-adjusted justified forward P/E | **21.99×** |
 
-| 文件 | 内容 |
+These values are conditional model outputs, not precise price predictions. The present value of the terminal value represents approximately 83% of Base Case enterprise value, making WACC, terminal growth, and terminal ROIC especially important.
+
+The integrated scenarios produce the following results:
+
+| Scenario | Core fair value per share | Risk-adjusted fair value per share |
+|---|---:|---:|
+| Bear | $52.32 | $49.87 |
+| Base | $74.22 | $72.24 |
+| Bull | $108.03 | $106.51 |
+
+Bear and Bull are coherent analytical boundary cases rather than statistical confidence intervals. No occurrence probabilities are assigned to the three operating scenarios.
+
+## Repository Structure
+
+| File | Purpose |
 |---|---|
-| `data/facts.csv` | 财报事实、管理层指引、市场观察、日期和原始来源 |
-| `data/assumptions.csv` | Base Case 假设、计算方法和选择理由 |
-| `data/scenario_assumptions.csv` | Bear/Base/Bull 三套经营与估值假设 |
-| `model.py` | 只使用 Python 标准库的完整计算脚本 |
-| `outputs/derived_inputs.csv` | CCBA、WACC、forward EPS 等推导过程 |
-| `outputs/forecast.csv` | 2027–2031 年逐项 FCFF |
-| `outputs/valuation_summary.csv` | 终值、折现和企业价值 |
-| `outputs/equity_bridge.csv` | EV 到股权价值及每股价值 |
-| `outputs/irs_scenarios.csv` | IRS 胜诉概率为 50%、60%、70%时的结果 |
-| `outputs/sensitivity.csv` | WACC × terminal growth 敏感性矩阵 |
-| `outputs/scenario_forecast.csv` | 三种经营情景的逐年收入与 FCFF |
-| `outputs/operating_scenarios.csv` | 三种综合情景的 EV、IRS 调整和每股价值 |
-| `outputs/fair_value_summary.csv` | 最终 fair value 和合理 forward P/E |
-| `outputs/validation_checks.csv` | 财报口径和模型加总的一致性检查 |
+| [`KO_DCF_Article_EN.md`](KO_DCF_Article_EN.md) | Full English investment report and technical appendix |
+| [`data/facts.csv`](data/facts.csv) | Reported facts, management guidance, market observations, dates, classifications, and original sources |
+| [`data/assumptions.csv`](data/assumptions.csv) | Base Case assumptions, formulas, methods, and rationale |
+| [`data/scenario_assumptions.csv`](data/scenario_assumptions.csv) | Integrated Bear, Base, and Bull assumptions |
+| [`model.py`](model.py) | Complete calculation engine using only the Python standard library |
+| [`outputs/derived_inputs.csv`](outputs/derived_inputs.csv) | CCBA, capital structure, WACC, and forward EPS derivations |
+| [`outputs/forecast.csv`](outputs/forecast.csv) | Base Case 2027–2031 FCFF forecast |
+| [`outputs/scenario_forecast.csv`](outputs/scenario_forecast.csv) | Annual forecasts for Bear, Base, and Bull |
+| [`outputs/operating_scenarios.csv`](outputs/operating_scenarios.csv) | Scenario EV, equity value, IRS adjustment, and per-share value |
+| [`outputs/valuation_summary.csv`](outputs/valuation_summary.csv) | Explicit-period and terminal-value calculations |
+| [`outputs/equity_bridge.csv`](outputs/equity_bridge.csv) | Enterprise-to-equity reconciliation |
+| [`outputs/irs_scenarios.csv`](outputs/irs_scenarios.csv) | Single-factor IRS probability analysis |
+| [`outputs/sensitivity.csv`](outputs/sensitivity.csv) | WACC and terminal-growth sensitivity matrix |
+| [`outputs/fair_value_summary.csv`](outputs/fair_value_summary.csv) | Core and risk-adjusted fair value and justified P/E |
+| [`outputs/validation_checks.csv`](outputs/validation_checks.csv) | Mechanical reconciliation and arithmetic checks |
 
-重新计算：
+## Reproducing the Model
+
+The model requires Python 3 and no external packages.
 
 ```bash
 python3 model.py
 ```
 
-所有输出 CSV 都会被重新生成。修改 Base 假设时编辑 `data/assumptions.csv`；修改三种情景时编辑 `data/scenario_assumptions.csv`。
-
-## 一、事实、推导和假设必须分开
-
-模型把数据分为三种：
-
-1. **Reported fact**：例如 2025 revenue、2026 Q2 debt；
-2. **Derived input**：例如推算 CCBA revenue、资本结构权重；
-3. **Analyst assumption**：例如 2029 revenue growth、terminal ROIC。
-
-公司 guidance 是事实，但 guidance 中的预测数字仍然不是已经实现的历史结果。模型不会把 management guidance 自动延伸到五年以后。
-
-## 二、为什么先做 CCBA pro forma
-
-2025 comparable revenue 为：
+Running the script regenerates every CSV in `outputs/` and prints the headline valuation results:
 
 ```text
-$48.062B
+Core fair value: $74.22/share
+Risk-adjusted fair value: $72.24/share
+Calculated WACC: 6.706%; adopted: 6.7%
 ```
 
-公司披露 Bottling Investments 占 2025 revenue 的 12%，同时披露排除 CCBA 后 Bottling Investments 仅占约 4%。因此估算：
+To update the model:
+
+1. Replace or add reported information in `data/facts.csv`.
+2. Update Base Case judgments in `data/assumptions.csv`.
+3. Update integrated scenario definitions in `data/scenario_assumptions.csv`.
+4. Run `python3 model.py`.
+5. Review `outputs/validation_checks.csv` before using the results.
+
+## Input Discipline
+
+The model separates inputs into four categories:
+
+| Classification | Meaning | Examples |
+|---|---|---|
+| Reported fact | Directly disclosed historical or balance-sheet information | 2025 revenue, Q2 2026 debt, diluted shares |
+| Management guidance | A disclosed forecast, not a realized result | 2026 organic growth, tax rate, FCF guidance |
+| Derived input | Calculated from disclosed facts | Estimated CCBA revenue, market-value capital weights |
+| Analyst assumption | A judgment that cannot be mechanically obtained from a filing | 2029 revenue growth, terminal ROIC, IRS win probability |
+
+Management guidance is treated as a disclosed statement, but its forecast values are not historical facts. The model does not automatically extend short-term guidance through the entire explicit period.
+
+## Reconstructing the Post-CCBA Baseline
+
+Coca-Cola reported 2025 revenue of $47.941 billion and comparable revenue of $48.062 billion. Bottling Investments represented approximately 12% of revenue, while Bottling Investments excluding CCBA represented approximately 4%.
+
+Estimated CCBA revenue is therefore:
 
 ```text
-CCBA revenue
-= 2025 reported revenue × (Bottling share - Bottling ex-CCBA share)
-= $47.941B × (12% - 4%)
-= $3.835B
+Estimated 2025 CCBA revenue
+= 2025 reported revenue × (12% - 4%)
+= $47.941 billion × 8%
+= $3.835 billion
 ```
 
-这不是公司直接披露的 CCBA revenue，而是由公司披露的收入占比推算。
+This is a derived estimate based on disclosed revenue shares, not a separately audited CCBA revenue figure.
+
+The post-CCBA comparable baseline is:
 
 ```text
-2025 pro forma comparable revenue ex-CCBA
-= $48.062B - $3.835B
-= $44.227B
+2025 pro forma comparable revenue excluding CCBA
+= $48.062 billion - $3.835 billion
+= $44.227 billion
 ```
 
-2026 guidance 是 organic revenue 约 +5%、FX 约 +1%、M&A/divestiture 约 -2%至-3%。由于模型已经把 CCBA 从历史基数中完整删除，所以 2026 pro forma revenue 只应用 organic 和 FX：
+Management's 2026 guidance includes approximately 5% organic revenue growth, an approximately 1% favorable currency effect, and a 2%–3% acquisitions-and-divestitures headwind. Because the model has already removed a full year of estimated CCBA revenue from the historical base, it applies only organic growth and currency:
 
 ```text
-2026 pro forma revenue ex-CCBA
-= $44.227B × (1 + 5% + 1%)
-= $46.880B
+2026 pro forma revenue excluding CCBA
+= $44.227 billion × (1 + 5% + 1%)
+= $46.880 billion
 ```
 
-不能再扣一次 -2.5% divestiture headwind，否则会重复计算 CCBA 出售。
+The divestiture headwind is not deducted again. Applying it to an already normalized historical base would double-count the CCBA disposal.
 
-## 三、Revenue growth 如何得到
+## Base Case Revenue Growth
 
-采用的路径为：
+The 2026 pro forma growth rate of 6.0% includes a 1.0% currency tailwind that is not treated as permanent. Base Case 2027 growth is constructed as follows:
 
-| 年度 | Growth | 依据 |
+```text
+2027 revenue growth
+= 2026 pro forma growth
+  - 2026 currency contribution
+  - normalization haircut
+= 6.0% - 1.0% - 0.3%
+= 4.7%
+```
+
+Growth then fades gradually toward the terminal rate:
+
+| Year | Growth | Construction |
 |---|---:|---|
-| 2026 pro forma | 6.0% | 5% organic guidance + 1% FX |
-| 2027 | 4.7% | 去除一次性 FX 后，略低于当前 organic trend |
-| 2028 | 4.4% | 向成熟增长回归 |
-| 2029 | 4.1% | 向成熟增长回归 |
-| 2030 | 3.8% | 接近长期水平 |
-| 2031 | 3.5% | 接近但仍高于 terminal growth |
-| Terminal | 3.0% | 全球成熟消费企业长期名义增长假设 |
+| 2026 pro forma | 6.0% | 5.0% organic guidance plus 1.0% FX |
+| 2027 | 4.7% | Remove 1.0% FX and apply a 0.3% normalization haircut |
+| 2028 | 4.4% | Approximately 0.3 percentage points below 2027 |
+| 2029 | 4.1% | Approximately 0.3 percentage points below 2028 |
+| 2030 | 3.8% | Approximately 0.3 percentage points below 2029 |
+| 2031 | 3.5% | Approximately 0.3 percentage points below 2030 |
+| Terminal period | 3.0% | Mature long-run nominal growth assumption |
 
-计算公式：
+Revenue is calculated as:
 
 ```text
 Revenue[t] = Revenue[t-1] × (1 + growth[t])
+
+2027 revenue = $46.880 billion × 1.047 = $49.084 billion
+2028 revenue = $49.084 billion × 1.044 = $51.243 billion
 ```
 
-例如：
+The growth rate is total post-CCBA revenue growth. It is not presented as unit-volume growth and is not separately decomposed into volume, price/mix, geography, and foreign exchange.
 
-```text
-2027 revenue = $46.880B × 1.047 = $49.084B
-2028 revenue = $49.084B × 1.044 = $51.243B
-```
+## Operating Margin, Tax, and Reinvestment
 
-这里没有假设当前 5% organic growth 永远持续；每年逐步回归 3% terminal growth。
+The operating-margin forecast is anchored to:
 
-## 四、Operating margin 如何得到
+- 2025 comparable operating margin of 31.24%;
+- 2025 underlying operating margin of 32.61%; and
+- 2026 H1 comparable operating margin of 34.3%.
 
-已知数据：
-
-- 2025 comparable operating margin：31.24%；
-- 2025 underlying operating margin：32.61%；
-- 2026 H1 comparable operating margin：34.3%，但存在季度季节性；
-- CCBA 属于低利润率、资本密集型瓶装业务，出售后公司组合更轻资产。
-
-因此 Base Case 不直接使用 34.3%，而采用：
-
-```text
-33.7% → 33.8% → 33.9% → 34.0% → 34.1%
-```
-
-这相当于每年仅扩张 10bp。利润率改善已经进入 EBIT 和 FCFF，后面不会再因为“高利润率”人为提高 P/E，避免 double count。
+The first-half 2026 result is seasonal and is not treated as a permanent full-year margin. Base begins at 33.7% in 2027 and expands by only 10 basis points per year to 34.1% in 2031.
 
 ```text
 EBIT[t] = Revenue[t] × operating margin[t]
+
+2027 EBIT = $49.084 billion × 33.7% = $16.541 billion
 ```
 
-例如：
-
-```text
-2027 EBIT = $49.084B × 33.7% = $16.541B
-```
-
-## 五、Tax 和 NOPAT
-
-管理层 2026 underlying effective tax rate guidance 为 19.9%。Base Case 四舍五入到 20.0%：
+The Base Case tax rate is 20.0%, rounded from management's 19.9% underlying effective tax-rate guidance. It excludes a possible adverse IRS outcome, which is valued separately.
 
 ```text
 NOPAT[t] = EBIT[t] × (1 - tax rate[t])
 ```
 
-例如：
+In 2025, consolidated D&A represented approximately 2.19% of revenue and capital expenditure represented approximately 4.41%. CCBA is capital-intensive, so the post-CCBA Base Case uses:
 
-```text
-2027 NOPAT = $16.541B × (1 - 20%) = $13.233B
-```
+- D&A equal to 1.7% of revenue;
+- CapEx declining from 3.6% of revenue in 2027 to 3.2% in 2031; and
+- normalized change in net working capital equal to zero.
 
-20%税率不包含 IRS 诉讼败诉影响。IRS 风险在股权价值之后单独做概率加权，避免把诉讼风险同时放进税率和 bridge。
+CapEx remains above D&A throughout the explicit forecast. The model does not generate free cash flow by assuming that Coca-Cola stops reinvesting.
 
-## 六、D&A、CapEx 和营运资本
+Normalized change in working capital is set to zero because Coca-Cola historically operates with negative working capital and recent reported changes were distorted by the fairlife payment, supplier terms, and supplier-finance arrangements. The assumption recognizes neither a continuing cash release nor an additional cash use.
 
-2025 consolidated 数据：
+## Explicit-Period FCFF
 
-```text
-D&A / revenue = $1.050B / $47.941B = 2.19%
-CapEx / revenue = $2.112B / $47.941B = 4.41%
-```
-
-CCBA 是资本密集型瓶装业务，相关 held-for-sale PP&E 占公司 PP&E 的较大部分。因此 post-CCBA 模型采用：
-
-- D&A / revenue：1.7%；
-- CapEx / revenue：从 3.6%逐步降至 3.2%；
-- CapEx 始终高于 D&A，模型没有假设公司停止投资。
-
-```text
-D&A[t] = Revenue[t] × D&A ratio[t]
-CapEx[t] = Revenue[t] × CapEx ratio[t]
-```
-
-营运资本采用零现金占用：
-
-```text
-ΔNWC[t] = 0
-```
-
-原因是 KO 长期拥有负营运资本，且 2024–2026 的 reported working-capital changes 被 fairlife payment、120天供应商账期和 supplier finance 明显扭曲。设为零意味着既不计现金释放，也不计额外现金消耗，是中性处理。
-
-## 七、显式期 FCFF
-
-显式期使用会计式 FCFF：
+The model uses an accounting FCFF formulation:
 
 ```text
 FCFF[t]
 = EBIT[t] × (1 - tax rate[t])
   + D&A[t]
   - CapEx[t]
-  - ΔNWC[t]
+  - change in NWC[t]
 ```
 
-以 2027 年为例：
+For 2027:
 
 ```text
-FCFF 2027
-= $13.233B + $0.834B - $1.767B - $0
-= $12.300B
+FCFF
+= $16.541 billion × (1 - 20.0%)
+  + $0.834 billion
+  - $1.767 billion
+  - $0
+= $12.300 billion
 ```
 
-公司 2026 guidance 的 $12.4B FCF 是 `CFO - CapEx`，已经扣除了利息，并可能包含权益法投资的股息，因此仅作为量级交叉检查，不直接作为 FCFF 输入。
+Management's 2026 FCF guidance of $12.4 billion is operating cash flow less capital expenditure. It is measured after interest and may include dividends from equity-method investments, so it is used only as a scale check and not inserted directly as FCFF.
 
-显式期没有再使用 `NOPAT × (1-g/ROIC)`，否则会把 CapEx 和 ΔNWC 已经反映的再投资重复扣除。
+The explicit period does not also apply `NOPAT × (1 - g/ROIC)`. Doing so after directly deducting CapEx and working-capital investment would count reinvestment twice.
 
-## 八、WACC 的每一步
+## WACC
 
-### 1. Cost of equity
+Base Case cost of equity is:
 
 ```text
 Risk-free rate = 4.5%
 Raw beta = 0.35
-Adjusted beta adopted = 0.60
-ERP = 4.2%
+Adjusted beta = 0.60
+Mature-market ERP = 4.2%
 ```
 
-beta 调整参考：
+The raw beta is adjusted toward one:
 
 ```text
 Adjusted beta
-= 2/3 × raw beta + 1/3 × 1.0
-= 2/3 × 0.35 + 1/3
-= 0.567 ≈ 0.60
+= 2/3 × 0.35 + 1/3 × 1.0
+= 0.567, rounded to 0.60
 ```
 
 ```text
@@ -236,36 +247,25 @@ Cost of equity
 = 7.02%
 ```
 
-### 2. Cost of debt
+Pretax cost of debt is assumed to be 5.0%, producing an after-tax cost of 4.0% at a 20% tax rate. This is a forward refinancing-cost assumption rather than historical interest expense divided by debt.
+
+Total debt is:
 
 ```text
-Pretax cost of debt = 5.0%
-After-tax cost of debt = 5.0% × (1 - 20%) = 4.0%
+$0.048 billion of loans and notes
++ $6.494 billion of current maturities
++ $37.001 billion of long-term debt
+= $43.543 billion
 ```
 
-5.0%是当前再融资成本假设，不是历史利息费用除以债务。历史 coupon 不能代表未来融资成本。
-
-### 3. Capital weights
-
-总债务：
+Market equity used only for WACC weighting is:
 
 ```text
-$0.048B loans and notes
-+ $6.494B current maturities
-+ $37.001B long-term debt
-= $43.543B
+$87.05 reference market price × 4.313 billion diluted shares
+= $375.447 billion
 ```
 
-仅用于 WACC 权重的市场股权价值：
-
-```text
-$87.05 × 4.313B diluted shares = $375.447B
-```
-
-```text
-E/V = 89.61%
-D/V = 10.39%
-```
+This produces an equity weight of 89.61% and a debt weight of 10.39%.
 
 ```text
 Calculated WACC
@@ -273,151 +273,149 @@ Calculated WACC
 = 6.706%
 ```
 
-Base Case 采用四舍五入的 6.7%。市场价格只用于资本结构权重，未被用来决定 fair value。
+The Base Case uses a rounded WACC of 6.7%. The reference market price affects only the capital weights and is not used to reverse-engineer fair value.
 
-## 九、折现期间
+## Discount Timing and Terminal Value
 
-估值日在 2026-08-19，2027 是第一个完整预测年度。采用 mid-year convention：
+The valuation date is August 19, 2026, and 2027 is the first complete forecast year. The model applies a mid-year convention:
 
-| Cash flow | 折现年数 |
+| Cash flow | Discount period |
 |---|---:|
-| 2027 FCFF | 0.87 |
-| 2028 FCFF | 1.87 |
-| 2029 FCFF | 2.87 |
-| 2030 FCFF | 3.87 |
-| 2031 FCFF | 4.87 |
-| 2031 year-end terminal value | 5.37 |
+| 2027 FCFF | 0.87 years |
+| 2028 FCFF | 1.87 years |
+| 2029 FCFF | 2.87 years |
+| 2030 FCFF | 3.87 years |
+| 2031 FCFF | 4.87 years |
+| Year-end 2031 terminal value | 5.37 years |
+
+Base Case present value of explicit FCFF is approximately $56.142 billion.
+
+The terminal period uses a 3.0% growth rate and 25% terminal ROIC. This forces the model to recognize the reinvestment required to support perpetual growth:
 
 ```text
-PV(FCFF[t]) = FCFF[t] / (1 + WACC)^discount years
-```
-
-显式期 FCFF 现值合计约 $56.14B。
-
-## 十、Terminal value
-
-显式期采用会计式 FCFF，terminal period 使用 ROIC 检查永续增长需要的再投资：
-
-```text
-Terminal growth = 3.0%
-Terminal ROIC = 25.0%
 Terminal reinvestment rate
 = terminal growth / terminal ROIC
-= 3% / 25%
-= 12%
-```
+= 3.0% / 25.0%
+= 12.0%
 
-```text
 2032 terminal NOPAT
 = 2031 NOPAT × 1.03
-= $16.103B
-```
+= $16.103 billion
 
-```text
 2032 terminal FCFF
-= terminal NOPAT × (1 - 12%)
-= $14.171B
+= $16.103 billion × (1 - 12.0%)
+= $14.171 billion
+
+Terminal value at year-end 2031
+= $14.171 billion / (6.7% - 3.0%)
+= $382.991 billion
+
+Present value of terminal value
+= $382.991 billion / (1.067)^5.37
+= $270.362 billion
 ```
+
+Enterprise value is therefore:
 
 ```text
-Terminal value at 2031 year-end
-= $14.171B / (6.7% - 3.0%)
-= $383.0B
+$56.142 billion + $270.362 billion
+= $326.504 billion
 ```
 
-折现后 terminal value 约 $270.35B。
+## Enterprise-to-Equity Bridge
 
-```text
-Fair EV
-= PV(explicit FCFF) + PV(terminal value)
-= $56.14B + $270.36B
-= $326.50B
-```
+| Item | Amount |
+|---|---:|
+| Fair enterprise value | $326.504 billion |
+| Less: debt | ($43.543 billion) |
+| Add: cash and short-term investments | $13.529 billion |
+| Add: marketable securities | $2.842 billion |
+| Add: equity-method investments | $20.782 billion |
+| Add: CCBA cash consideration | $1.300 billion |
+| Add: retained 25% CCBA interest | $0.850 billion |
+| Less: noncontrolling interests | ($2.165 billion) |
+| **Fair equity value before IRS** | **$320.099 billion** |
 
-CSV 保留更多小数，以上展示值经过四舍五入。
-
-## 十一、EV 到股权价值
-
-```text
-Fair EV                                      $326.50B
-- Debt                                       (43.54B)
-+ Cash and short-term investments             13.53B
-+ Marketable securities                        2.84B
-+ Equity-method investments                    20.78B
-+ CCBA sale cash consideration                  1.30B
-+ CCBA retained interest                        0.85B
-- Noncontrolling interests                     (2.17B)
-= Fair equity value before IRS                $320.10B
-```
-
-权益法收益在 income statement 中位于 operating income 以下。因此基于 EBIT 的 DCF 没有包含这些业务的现金流，对应的 equity-method investments 必须单独加回，否则会漏算。
-
-Equity-method investments 采用账面价值而不是逐项市场价值；完整 NCI 均被扣除。两项处理整体偏保守。
+Equity-method investments are added because their earnings are below operating income and are not included in the EBIT-based DCF. They are included at reported carrying value rather than valued individually. The full reported noncontrolling-interest balance is deducted.
 
 ```text
 Core fair value per share
-= $320.10B / 4.313B shares
+= $320.099 billion / 4.313 billion diluted shares
 = $74.22
 ```
 
-## 十二、IRS 风险调整
+## IRS Litigation Adjustment
 
-Core DCF 既没有加入胜诉时可收回的 IRS deposit，也没有扣除败诉结果。
-
-已披露数据：
+The core DCF excludes both the potential refund asset and adverse-case liabilities.
 
 ```text
-Refund if KO wins = $6.000B deposit + $0.514B interest = $6.514B
-Remaining liability if KO loses = $14.9B
+Refund if Coca-Cola prevails
+= $6.000 billion deposit + $0.514 billion accrued interest
+= $6.514 billion
+
+Remaining liability if Coca-Cola loses = $14.900 billion
 Potential future effective-tax-rate increase = 3.8 percentage points
 ```
 
-未来年度税负估算：
+The annual future tax burden is estimated from 2026 pro forma EBIT:
 
 ```text
 2026 pro forma EBIT
-= $46.880B × 33.6%
-= $15.752B
-```
+= $46.880 billion × 33.6%
+= $15.752 billion
 
-```text
 Annual future tax drag
-= $15.752B × 3.8%
-= $0.599B
+= $15.752 billion × 3.8%
+= $0.599 billion
+
+Present value of future tax drag if Coca-Cola loses
+= $0.599 billion / (6.7% - 3.0%)
+= $16.178 billion
 ```
 
-将其作为增长3%的长期税负估值：
-
-```text
-PV future tax drag if loss
-= $0.599B / (6.7% - 3.0%)
-= $16.18B
-```
-
-Base Case 主观胜诉概率为60%。这是分析假设，不是公司披露的概率。
+The Base Case assumes a 60% probability that Coca-Cola prevails. This is an analyst assumption rather than a company-disclosed probability.
 
 ```text
 Expected IRS adjustment
-= 60% × $6.514B
-  - 40% × ($14.9B + $16.18B)
-= -$8.52B
-```
+= 60% × $6.514 billion
+  - 40% × ($14.900 billion + $16.178 billion)
+= -$8.523 billion
 
-```text
 Risk-adjusted fair value
-= ($320.10B - $8.52B) / 4.313B
-= $72.24/股
+= ($320.099 billion - $8.523 billion) / 4.313 billion shares
+= $72.24 per share
 ```
 
-| 胜诉概率 | Fair value/股 |
+Holding all other Base assumptions constant:
+
+| IRS win probability | Fair value per share |
 |---:|---:|
-| 50% | 约 $71.37 |
-| 60% | 约 $72.24 |
-| 70% | 约 $73.11 |
+| 50% | $71.37 |
+| 60% | $72.24 |
+| 70% | $73.11 |
 
-## 十三、敏感性
+## Scenario Analysis
 
-下表为 IRS 调整前的每股价值：
+The integrated scenarios change revenue growth, operating margin, tax rate, capital intensity, WACC, terminal growth, terminal ROIC, and IRS win probability together.
+
+| Assumption | Bear | Base | Bull |
+|---|---:|---:|---:|
+| 2027–2031 revenue growth | 3.2% → 2.6% | 4.7% → 3.5% | 5.5% → 4.0% |
+| 2027–2031 operating margin | 32.7% → 32.5% | 33.7% → 34.1% | 34.2% → 35.2% |
+| Normal tax rate | 21.0% | 20.0% | 19.5% |
+| 2027–2031 CapEx/revenue | 3.8% → 3.4% | 3.6% → 3.2% | 3.5% → 3.1% |
+| WACC | 7.2% | 6.7% | 6.2% |
+| Terminal growth | 2.5% | 3.0% | 3.5% |
+| Terminal ROIC | 20.0% | 25.0% | 30.0% |
+| IRS win probability | 50% | 60% | 70% |
+
+Bear represents faster normalization in pricing and volume, margin pressure, higher capital intensity, and higher valuation risk premia. Bull requires durable brand pricing, resilient volume, sustained operating leverage, lower capital intensity, and stronger terminal economics.
+
+The detailed annual variables, exact changes relative to Base, and case rationale are available in Sections 3 and 6 and Appendix B of the full report.
+
+## WACC and Terminal-Growth Sensitivity
+
+The following values are per share before the IRS adjustment and hold the Base operating forecast and terminal ROIC constant:
 
 | WACC \ Terminal growth | 2.5% | 3.0% | 3.5% |
 |---|---:|---:|---:|
@@ -426,34 +424,49 @@ Risk-adjusted fair value
 | 7.2% | $60.34 | $65.21 | $71.39 |
 | 7.7% | $54.37 | $58.13 | $62.77 |
 
-这个矩阵说明：`$74.22` 不是一个应当脱离假设使用的精确事实。对 KO 这类长久期公司，50bp 的 WACC 变化足以显著改变估值。
+This sensitivity matrix changes only valuation parameters. It should not be confused with the integrated operating scenarios, which change several economically related assumptions together.
 
-## 十三-A、综合经营情景
+## Validation Checks
 
-与只改变 WACC 和 terminal growth 的敏感性不同，综合情景同时改变收入增长、利润率、税率、CapEx、WACC、terminal growth、terminal ROIC 和 IRS 胜诉概率：
+The model currently passes all eight mechanical checks:
 
-| 情景 | Core fair value/股 | Risk-adjusted fair value/股 |
-|---|---:|---:|
-| Bear | $52.32 | $49.87 |
-| Base | $74.22 | $72.24 |
-| Bull | $108.03 | $106.51 |
+| Check | Status |
+|---|---|
+| 2025 comparable operating margin reconciliation | Pass |
+| 2025 adjusted FCF excluding fairlife | Pass |
+| 2026 management FCF guidance | Pass |
+| Enterprise value aggregation | Pass |
+| Core equity value bridge | Pass |
+| Risk-adjusted fair value | Pass |
+| Integrated Base core fair value equals main Base model | Pass |
+| Integrated Base risk-adjusted value equals main Base model | Pass |
 
-精确的逐年变量、相对 Base 的改变和形成理由见英文完整报告的 Sections 3 and 6 以及 Appendix B。综合情景用于检验成套假设下的边界，不代表统计置信区间，也没有被赋予发生概率。
+These checks validate arithmetic and accounting reconciliation. They do not establish that the analyst assumptions are necessarily correct.
 
-## 十四、模型没有做什么
+## Important Modeling Boundaries
 
-- 没有把 2026 H1 的 34.3% margin 永久化；
-- 没有把管理层 5% organic growth 永久化；
-- 没有把公司定义的 FCF 直接当成 FCFF；
-- 没有在显式期同时使用 CapEx 法和 `g/ROIC` 法扣两次再投资；
-- 没有把 IRS 风险同时放入税率和 equity bridge；
-- 没有利用当前股价倒推结果，股价只影响 WACC 的资本权重。
+The model does not:
 
-## 十五、主要局限
+- perpetuate the 34.3% first-half 2026 margin;
+- perpetuate management's 5% organic growth guidance;
+- treat company-defined FCF as FCFF;
+- deduct reinvestment twice during the explicit period;
+- include IRS exposure in both the operating tax rate and equity bridge;
+- apply the CCBA divestiture headwind to a base from which CCBA has already been fully removed; or
+- use the reference market price to reverse-engineer intrinsic value.
 
-1. CCBA revenue 是根据披露占比推算，不是单独审计数字；
-2. Post-CCBA D&A 和 CapEx ratio 需要交易完成后的真实报表验证；
-3. Equity-method investments 使用账面值，未逐项按市场价值估值；
-4. 60% IRS 胜诉概率是主观假设；
-5. 没有纳入分析师 consensus，只使用公司资料、市场参数和基本面回归路径；
-6. 终值占比较高，因此必须结合敏感性区间使用。
+## Principal Limitations
+
+1. Estimated CCBA revenue is derived from disclosed revenue shares rather than a separately audited figure.
+2. Post-CCBA D&A and CapEx ratios require validation after the transaction closes.
+3. Revenue growth is modeled top-down without a separate volume, price/mix, and currency forecast.
+4. Equity-method investments are included at carrying value rather than valued individually.
+5. Transaction taxes, costs, timing, and closing risk are not modeled separately.
+6. The IRS win probability is subjective, and the timing of a final ruling is simplified.
+7. WACC inputs are time-sensitive and should be updated with market conditions.
+8. Terminal value represents a large share of enterprise value.
+9. Bear, Base, and Bull have no assigned scenario probabilities.
+
+## Disclaimer
+
+This repository is an analytical and educational valuation model. It is not investment advice, a recommendation to buy or sell securities, or a guarantee of future results. Users should independently verify source data, assumptions, tax and legal developments, and market inputs before relying on the analysis.

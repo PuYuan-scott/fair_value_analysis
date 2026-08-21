@@ -1,0 +1,9 @@
+check,calculated,reported_or_expected,difference,tolerance,passed
+2025 comparable operating margin,0.312367359,0.3124,-0.000032641,0.0001,True
+2025 adjusted FCF excluding fairlife,11.365,11.365,0,0.000001,True
+2026 management FCF guidance,12.4,12.4,-0,0.000001,True
+Enterprise value,326.503774328,326.503774328,0,0.000001,True
+Core equity value,320.098774328,320.098774328,0,0.000001,True
+Risk-adjusted fair value,72.241170713,72.241170713,0,0.000001,True
+Integrated Base scenario core fair value,74.21719785,74.21719785,0,0.000001,True
+Integrated Base scenario risk-adjusted fair value,72.241170713,72.241170713,0,0.000001,True

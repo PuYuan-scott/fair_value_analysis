@@ -1,0 +1,14 @@
+item,value,unit,formula
+Estimated 2025 CCBA revenue,3.83528,USD bn,2025 reported revenue x (12% Bottling share - 4% Bottling ex-CCBA share)
+2025 pro forma comparable revenue ex-CCBA,44.22672,USD bn,2025 comparable revenue - estimated CCBA revenue
+2026 pro forma revenue ex-CCBA,46.8803232,USD bn,2025 pro forma revenue x (1 + 5% organic + 1% FX)
+Total debt,43.543,USD bn,loans and notes + current maturities + long-term debt
+Market equity used for WACC weights,375.44665,USD bn,$87.05 market price x 4.313bn diluted shares
+Equity weight,0.896076192,decimal,market equity / (market equity + debt)
+Debt weight,0.103923808,decimal,debt / (market equity + debt)
+Cost of equity,0.0702,decimal,4.5% risk-free + 0.60 adjusted beta x 4.2% ERP
+After-tax cost of debt,0.04,decimal,5.0% pre-tax cost x (1 - 20% tax)
+Calculated WACC,0.067061501,decimal,E/V x cost of equity + D/V x after-tax cost of debt
+Adopted WACC,0.067,decimal,Calculated WACC rounded to nearest 10 bps
+CCBA retained interest value,0.85,USD bn,$3.4bn total value x 25% retained stake
+2026 comparable EPS midpoint,3.285,USD per share,$3.00 x (1 + 9.5%)

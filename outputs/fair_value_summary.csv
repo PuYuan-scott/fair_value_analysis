@@ -1,0 +1,8 @@
+metric,value,unit,formula
+Core fair value,74.21719785,USD per share,Equity value before IRS / diluted shares
+Base IRS win probability,0.6,decimal,Analyst assumption
+IRS expected adjustment,-8.522605045,USD bn,P(win) x refund - P(loss) x (remaining liability + PV tax drag)
+Risk-adjusted fair value,72.241170713,USD per share,(Core equity value + IRS expected adjustment) / diluted shares
+2026 comparable EPS midpoint,3.285,USD per share,$3.00 x 1.095
+Core justified forward PE,22.592754292,x,Core fair value / 2026 EPS midpoint
+Risk-adjusted justified forward PE,21.991223961,x,Risk-adjusted fair value / 2026 EPS midpoint

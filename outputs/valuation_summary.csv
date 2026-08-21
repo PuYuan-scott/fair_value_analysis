@@ -1,0 +1,9 @@
+item,value_usd_bn,formula
+PV of explicit FCFF,56.141670823,Sum of 2027-2031 FCFF present values
+2032 terminal NOPAT,16.103037376,2031 NOPAT x (1 + terminal growth)
+Terminal reinvestment rate,0.12,terminal growth / terminal ROIC; value shown as decimal
+2032 terminal FCFF,14.170672891,terminal NOPAT x (1 - terminal reinvestment rate)
+Terminal value at 2031 year-end,382.991159222,terminal FCFF / (WACC - terminal growth)
+PV of terminal value,270.362103505,terminal value / (1 + WACC)^5.37
+Fair enterprise value,326.503774328,PV explicit FCFF + PV terminal value
+Terminal value share of EV,0.828052001,PV terminal value / enterprise value; value shown as decimal

@@ -1,0 +1,4 @@
+win_probability,refund_if_win_usd_bn,remaining_liability_if_loss_usd_bn,annual_future_tax_drag_usd_bn,pv_future_tax_drag_if_loss_usd_bn,expected_adjustment_usd_bn,adjusted_equity_value_usd_bn,adjusted_fair_value_per_share
+0.5,6.514,14.9,0.598567967,16.177512611,-12.281756306,307.817018022,71.369584517
+0.6,6.514,14.9,0.598567967,16.177512611,-8.522605045,311.576169283,72.241170713
+0.7,6.514,14.9,0.598567967,16.177512611,-4.763453783,315.335320544,73.112756908

@@ -1,0 +1,12 @@
+item,value_usd_bn,formula_or_source
+Fair enterprise value,326.503774328,DCF output
+Debt,-43.543,Loans + current maturities + long-term debt
+Cash and short-term investments,13.529,Q2 2026 balance sheet
+Marketable securities,2.842,Q2 2026 balance sheet
+Equity-method investments,20.782,Added because equity income is below operating income
+CCBA sale cash consideration,1.3,Pending transaction consideration
+CCBA retained 25% interest,0.85,25% x $3.4bn implied equity value
+Noncontrolling interests,-2.165,Full reported balance deducted conservatively
+Fair equity value before IRS,320.098774328,Sum of bridge
+Diluted shares (bn),4.313,Q2 2026 diluted shares
+Core fair value per share,74.21719785,Fair equity value / diluted shares

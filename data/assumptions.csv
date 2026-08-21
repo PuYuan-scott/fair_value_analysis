@@ -1,0 +1,48 @@
+id,section,value,unit,formula_or_method,rationale
+valuation_date,model,2026-08-19,date,User-session current date,Balance sheet is 2026-07-03 and guidance is 2026-07-28
+forecast_start_year,model,2027,year,First full forecast year,Avoid including cash flow already earned in 2026 balance sheet cash
+explicit_years,model,5,years,2027 through 2031,Matches requested five-year explicit DCF
+proforma_2026_growth,operations,0.06,decimal,2026 organic growth 5 percent plus FX 1 percent,CCBA is removed fully from the pro forma base so the partial-year divestiture headwind is not deducted again
+revenue_growth_2027,operations,0.047,decimal,Management guidance plus normalization,Starts slightly below 2026 organic-plus-FX growth
+revenue_growth_2028,operations,0.044,decimal,Mean reversion,Gradual fade toward mature nominal growth
+revenue_growth_2029,operations,0.041,decimal,Mean reversion,Gradual fade toward mature nominal growth
+revenue_growth_2030,operations,0.038,decimal,Mean reversion,Gradual fade toward mature nominal growth
+revenue_growth_2031,operations,0.035,decimal,Mean reversion,Approaches but remains above terminal growth
+operating_margin_2027,operations,0.337,decimal,2025 pro forma margin plus modest expansion,CCBA removal raises mix because bottling is lower margin
+operating_margin_2028,operations,0.338,decimal,10 basis point expansion,Scale and asset-light mix partly offset by reinvestment
+operating_margin_2029,operations,0.339,decimal,10 basis point expansion,Scale and asset-light mix partly offset by reinvestment
+operating_margin_2030,operations,0.340,decimal,10 basis point expansion,No aggressive margin step-up
+operating_margin_2031,operations,0.341,decimal,10 basis point expansion,Terminal-compatible normalized margin
+tax_rate_2027,operations,0.20,decimal,Rounded management underlying tax guidance,Excludes adverse IRS outcome which is modeled separately
+tax_rate_2028,operations,0.20,decimal,Normalized tax rate,Stable mature-company assumption
+tax_rate_2029,operations,0.20,decimal,Normalized tax rate,Stable mature-company assumption
+tax_rate_2030,operations,0.20,decimal,Normalized tax rate,Stable mature-company assumption
+tax_rate_2031,operations,0.20,decimal,Normalized tax rate,Stable mature-company assumption
+da_revenue_2027,reinvestment,0.017,decimal,Post-CCBA pro forma ratio,Lower than 2025 consolidated 2.2 percent after capital-intensive bottling removal
+da_revenue_2028,reinvestment,0.017,decimal,Normalized post-CCBA ratio,Held constant
+da_revenue_2029,reinvestment,0.017,decimal,Normalized post-CCBA ratio,Held constant
+da_revenue_2030,reinvestment,0.017,decimal,Normalized post-CCBA ratio,Held constant
+da_revenue_2031,reinvestment,0.017,decimal,Normalized post-CCBA ratio,Held constant
+capex_revenue_2027,reinvestment,0.036,decimal,Post-CCBA pro forma estimate,Lower than 2025 consolidated 4.4 percent but retains brand and supply-chain investment
+capex_revenue_2028,reinvestment,0.035,decimal,Asset-light normalization,10 basis point decline
+capex_revenue_2029,reinvestment,0.034,decimal,Asset-light normalization,10 basis point decline
+capex_revenue_2030,reinvestment,0.033,decimal,Asset-light normalization,10 basis point decline
+capex_revenue_2031,reinvestment,0.032,decimal,Asset-light normalization,Still exceeds D&A
+delta_nwc_revenue_2027,reinvestment,0.0,decimal,Zero normalized cash use,KO has negative working capital and reported changes are distorted by fairlife and supplier finance; ignores potential cash release
+delta_nwc_revenue_2028,reinvestment,0.0,decimal,Zero normalized cash use,Neutral conservative convention
+delta_nwc_revenue_2029,reinvestment,0.0,decimal,Zero normalized cash use,Neutral conservative convention
+delta_nwc_revenue_2030,reinvestment,0.0,decimal,Zero normalized cash use,Neutral conservative convention
+delta_nwc_revenue_2031,reinvestment,0.0,decimal,Zero normalized cash use,Neutral conservative convention
+risk_free_rate,wacc,0.045,decimal,Normalized current 10-year US Treasury rate,Reduces dependence on a single volatile daily observation
+adjusted_beta,wacc,0.60,decimal,Raw beta adjusted toward 1 and rounded,Raw 0.35 gives 0.57 under two-thirds raw plus one-third one; rounded to 0.60
+pretax_cost_of_debt,wacc,0.05,decimal,Current refinancing-cost assumption,Above historical coupon cost and consistent with investment-grade spread over Treasury
+wacc_adopted,wacc,0.067,decimal,Calculated WACC rounded to nearest 10 basis points,Raw calculation is reported in derived_inputs.csv
+terminal_growth,terminal,0.03,decimal,Long-run nominal growth,Within mature global nominal GDP range and below WACC
+terminal_roic,terminal,0.25,decimal,Normalized long-run ROIC,Below current franchise economics and forces terminal reinvestment
+first_cash_flow_discount_years,discounting,0.87,years,Approximate midpoint of 2027 from 2026-08-19,Mid-year convention
+terminal_discount_years,discounting,5.37,years,2026-08-19 to 2031-12-31,Terminal value is measured at end of 2031
+irs_base_win_probability,litigation,0.60,decimal,Analyst probability assumption,Company states more likely than not to prevail; sensitivity shows 50 to 70 percent
+sensitivity_wacc_low,sensitivity,0.062,decimal,Base minus 50 basis points,Scenario only
+sensitivity_wacc_high,sensitivity,0.077,decimal,Base plus 100 basis points,Scenario only
+sensitivity_terminal_growth_low,sensitivity,0.025,decimal,Base minus 50 basis points,Scenario only
+sensitivity_terminal_growth_high,sensitivity,0.035,decimal,Base plus 50 basis points,Scenario only
